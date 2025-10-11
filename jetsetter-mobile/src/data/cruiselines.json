@@ -1,0 +1,52 @@
+{
+  "cruiseLines": [
+    {
+      "id": 1,
+      "name": "Royal Caribbean",
+      "image": "https://images.unsplash.com/photo-1508515803898-d0ebb8c48291?w=800",
+      "price": "$499",
+      "rating": 5.0,
+      "description": "Experience world-class entertainment and dining"
+    },
+    {
+      "id": 2,
+      "name": "Carnival Cruise Line",
+      "image": "https://images.unsplash.com/photo-1541454549277-1d0e94d5fbb3?w=800",
+      "price": "$399",
+      "rating": 4.8,
+      "description": "Fun ships with exciting activities for all ages"
+    },
+    {
+      "id": 3,
+      "name": "Norwegian Cruise Line",
+      "image": "https://images.unsplash.com/photo-1555881603-0a5f4a6b8a74?w=800",
+      "price": "$549",
+      "rating": 4.9,
+      "description": "Freestyle cruising with flexible dining"
+    },
+    {
+      "id": 4,
+      "name": "Princess Cruises",
+      "image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800",
+      "price": "$599",
+      "rating": 4.7,
+      "description": "Luxury and elegance on the high seas"
+    },
+    {
+      "id": 5,
+      "name": "MSC Cruises",
+      "image": "https://images.unsplash.com/photo-1568107582005-1799617a6df4?w=800",
+      "price": "$449",
+      "rating": 4.6,
+      "description": "Mediterranean-style hospitality"
+    },
+    {
+      "id": 6,
+      "name": "Celebrity Cruises",
+      "image": "https://images.unsplash.com/photo-1569437162923-246c78b84a20?w=800",
+      "price": "$649",
+      "rating": 4.9,
+      "description": "Modern luxury cruise experience"
+    }
+  ]
+}

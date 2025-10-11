@@ -1,0 +1,52 @@
+{
+  "destinations": [
+    {
+      "id": 1,
+      "name": "Caribbean",
+      "country": "Multiple Islands",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
+      "rating": 4.8,
+      "price": 599
+    },
+    {
+      "id": 2,
+      "name": "Mediterranean",
+      "country": "Europe",
+      "image": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800",
+      "rating": 4.9,
+      "price": 899
+    },
+    {
+      "id": 3,
+      "name": "Alaska",
+      "country": "United States",
+      "image": "https://images.unsplash.com/photo-1564425064325-6c26ead01b1f?w=800",
+      "rating": 4.7,
+      "price": 799
+    },
+    {
+      "id": 4,
+      "name": "Bahamas",
+      "country": "Caribbean",
+      "image": "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800",
+      "rating": 4.6,
+      "price": 499
+    },
+    {
+      "id": 5,
+      "name": "Mexico",
+      "country": "North America",
+      "image": "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=800",
+      "rating": 4.5,
+      "price": 549
+    },
+    {
+      "id": 6,
+      "name": "Hawaii",
+      "country": "United States",
+      "image": "https://images.unsplash.com/photo-1542259009477-d625272157b7?w=800",
+      "rating": 4.9,
+      "price": 999
+    }
+  ]
+}
