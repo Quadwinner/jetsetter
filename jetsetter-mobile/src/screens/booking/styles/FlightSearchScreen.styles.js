@@ -117,6 +117,9 @@ export default StyleSheet.create({
     color: '#1E293B',
     fontWeight: '500',
   },
+  placeholderText: {
+    color: '#94A3B8',
+  },
 
   // Suggestions
   suggestions: {

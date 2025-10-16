@@ -1,6 +1,6 @@
-# 🚀 Jetsetterss Mobile App
+# 🚀 Jetsetters Mobile App
 
-A React Native mobile application for the Jetsetterss travel booking platform, built with Expo and TypeScript.
+A React Native mobile application for the Jetsetters travel booking platform, built with Expo and TypeScript.
 
 ## 📱 Features
 
@@ -224,7 +224,7 @@ This project is proprietary software. All rights reserved.
 
 ---
 
-**Built with ❤️ by the Jetsetterss Development Team**
+**Built with ❤️ by the Jetsetters Development Team**
 
 
 

@@ -118,8 +118,11 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   // Navigate to login screen
-  const handleLogin = () => {
-    navigation.navigate('Login');
+  const handleLogin = async () => {
+    // Clear authentication state to trigger navigation to AuthStack
+    await AsyncStorage.setItem('isAuthenticated', 'false');
+    await AsyncStorage.removeItem('user');
+    dispatch(logoutAction());
   };
 
   // Handle logout

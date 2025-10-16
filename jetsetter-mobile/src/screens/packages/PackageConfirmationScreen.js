@@ -1,10 +1,41 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import packageService from '../../services/packageService';
 
 const PackageConfirmationScreen = ({ route, navigation }) => {
-  const { booking, package: pkg } = route.params;
+  const { booking, package: pkg, payment, orderReference } = route.params;
+
+  // Save booking to AsyncStorage when confirmation screen loads
+  useEffect(() => {
+    const saveBooking = async () => {
+      try {
+        const bookingToSave = {
+          orderId: orderReference || booking.bookingReference || `PACKAGE-${Date.now()}`,
+          bookingReference: booking.bookingReference || orderReference || `PACKAGE-${Date.now()}`,
+          type: 'package',
+          package: pkg,
+          travelDate: booking.travelDate,
+          travelers: booking.travelers,
+          amount: booking.totalPrice,
+          totalAmount: booking.totalPrice,
+          payment: payment || null,
+          status: 'CONFIRMED',
+          bookingDate: new Date().toISOString(),
+          orderCreatedAt: new Date().toISOString(),
+          transactionId: payment?.transactionId || null,
+        };
+
+        await AsyncStorage.setItem('completedPackageBooking', JSON.stringify(bookingToSave));
+        console.log('✅ Package booking saved to AsyncStorage');
+      } catch (error) {
+        console.error('❌ Error saving package booking:', error);
+      }
+    };
+
+    saveBooking();
+  }, [orderReference, booking, pkg, payment]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>

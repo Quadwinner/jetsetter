@@ -78,6 +78,22 @@ const MyTripsScreen = ({ navigation }) => {
         }
       }
 
+      // Load package bookings
+      const packageBooking = await AsyncStorage.getItem('completedPackageBooking');
+      if (packageBooking) {
+        try {
+          const booking = JSON.parse(packageBooking);
+          console.log('Parsed package booking:', booking);
+          allBookings.push({
+            ...booking,
+            type: 'package',
+            bookingDate: booking.orderCreatedAt || new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Error parsing package booking:', error);
+        }
+      }
+
       console.log('📋 Total bookings loaded:', allBookings.length);
       setBookings(allBookings);
     } catch (error) {

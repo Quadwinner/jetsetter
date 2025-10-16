@@ -59,6 +59,8 @@ export default StyleSheet.create({
   // Form Groups
   formGroup: {
     marginBottom: 18,
+    position: 'relative',
+    zIndex: 1,
   },
   label: {
     fontSize: 14,
@@ -85,10 +87,16 @@ export default StyleSheet.create({
     color: '#1E293B',
     fontWeight: '500',
   },
+  placeholderText: {
+    color: '#94A3B8',
+  },
 
   // Suggestions
   suggestions: {
-    marginTop: 10,
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
     borderColor: '#E2E8F0',
@@ -96,9 +104,10 @@ export default StyleSheet.create({
     maxHeight: 220,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 10,
+    zIndex: 1000,
   },
   suggestionItem: {
     padding: 16,
@@ -257,5 +266,44 @@ export default StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     fontWeight: '500',
+  },
+  // Web Date Picker Styles
+  webDatePicker: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  webDatePickerTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  webDateInput: {
+    width: '100%',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    fontSize: 16,
+    marginBottom: 15,
+  },
+  webDatePickerButton: {
+    backgroundColor: '#64748B',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  webDatePickerButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

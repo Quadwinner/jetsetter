@@ -7,13 +7,18 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import flightService from '../../services/flightService';
+import arcPayService from '../../services/arcPayService';
 import styles from './styles/FlightPaymentScreen.styles';
 
 const FlightPaymentScreen = ({ route, navigation }) => {
   const { selectedFlight, searchParams } = route.params;
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
 
   // Initialize travelers array based on search params
@@ -32,6 +37,25 @@ const FlightPaymentScreen = ({ route, navigation }) => {
   const [travelers, setTravelers] = useState(initializeTravelers());
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+
+  // Payment Information
+  const [paymentInfo, setPaymentInfo] = useState({
+    cardNumber: '',
+    cardHolder: '',
+    expiryDate: '',
+    cvv: '',
+  });
+
+  // Fill test card details
+  const fillTestCard = () => {
+    setPaymentInfo({
+      cardNumber: '4012 0000 9876 5439',
+      cardHolder: 'Test User',
+      expiryDate: '12/25',
+      cvv: '999',
+    });
+    Alert.alert('Test Card Filled', 'Visa test card details have been filled for testing.');
+  };
 
   const updateTraveler = (index, field, value) => {
     const updatedTravelers = [...travelers];
@@ -75,6 +99,12 @@ const FlightPaymentScreen = ({ route, navigation }) => {
       return false;
     }
 
+    // Validate payment information
+    if (!paymentInfo.cardNumber || !paymentInfo.cardHolder || !paymentInfo.expiryDate || !paymentInfo.cvv) {
+      Alert.alert('Missing Payment', 'Please complete all payment information');
+      return false;
+    }
+
     return true;
   };
 
@@ -84,8 +114,60 @@ const FlightPaymentScreen = ({ route, navigation }) => {
     setLoading(true);
 
     try {
-      // In real implementation, integrate with ARC Pay here
-      // For now, we'll proceed directly to booking
+      const price = selectedFlight.price?.total || '0';
+      const totalAmount = parseFloat(price);
+      const orderReference = `FLIGHT-${Date.now()}-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
+
+      console.log('✈️ Starting flight booking process...');
+      console.log('Order Reference:', orderReference);
+      console.log('Total Amount:', totalAmount);
+
+      // Parse card expiry date
+      let expiryMonth, expiryYear;
+      try {
+        const expiry = arcPayService.parseExpiryDate(paymentInfo.expiryDate);
+        expiryMonth = expiry.month;
+        expiryYear = expiry.year;
+      } catch (error) {
+        setLoading(false);
+        Alert.alert('Invalid Expiry Date', 'Please enter expiry date in MM/YY format');
+        return;
+      }
+
+      // Validate card number
+      if (!arcPayService.validateCardNumber(paymentInfo.cardNumber)) {
+        setLoading(false);
+        Alert.alert('Invalid Card', 'Please enter a valid card number');
+        return;
+      }
+
+      // Process payment through ARC Pay
+      console.log('💳 Processing payment through ARC Pay...');
+      const paymentResult = await arcPayService.processPayment({
+        amount: totalAmount,
+        currency: selectedFlight.price?.currency || 'USD',
+        orderReference,
+        customerEmail: contactEmail,
+        customerPhone: contactPhone,
+        customerName: `${travelers[0].firstName} ${travelers[0].lastName}`,
+        cardNumber: paymentInfo.cardNumber,
+        cardHolder: paymentInfo.cardHolder,
+        expiryMonth,
+        expiryYear,
+        cvv: paymentInfo.cvv,
+        description: `Flight Booking - ${selectedFlight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode} to ${selectedFlight.itineraries?.[0]?.segments?.[selectedFlight.itineraries[0].segments.length - 1]?.arrival?.iataCode}`,
+      });
+
+      console.log('📊 Payment Result:', paymentResult);
+
+      if (!paymentResult.success) {
+        setLoading(false);
+        Alert.alert(
+          'Payment Failed',
+          paymentResult.error || 'Unable to process payment. Please check your card details and try again.'
+        );
+        return;
+      }
 
       // Format travelers for Amadeus API
       const formattedTravelers = travelers.map((traveler) => ({
@@ -119,13 +201,22 @@ const FlightPaymentScreen = ({ route, navigation }) => {
       setLoading(false);
 
       if (result.success) {
-        // Navigate to confirmation screen
+        // Navigate to confirmation screen with payment info
         navigation.navigate('FlightConfirmation', {
           pnr: result.pnr,
-          orderId: result.orderId,
+          orderId: result.orderId || orderReference,
           orderData: result.orderData,
           travelers: formattedTravelers,
           flight: selectedFlight,
+          payment: {
+            transactionId: paymentResult.transactionId,
+            status: paymentResult.status,
+            authorizationCode: paymentResult.authorizationCode,
+            amount: paymentResult.amount,
+            currency: paymentResult.currency,
+            processedAt: new Date().toISOString(),
+          },
+          orderReference,
         });
       } else {
         Alert.alert(
@@ -159,7 +250,12 @@ const FlightPaymentScreen = ({ route, navigation }) => {
         <Text style={styles.headerTitle}>Booking Details</Text>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Flight Summary */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Flight Summary</Text>
@@ -276,6 +372,57 @@ const FlightPaymentScreen = ({ route, navigation }) => {
           </View>
         </View>
 
+        {/* Payment Information */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Payment Information</Text>
+            <TouchableOpacity style={styles.testButton} onPress={fillTestCard}>
+              <Text style={styles.testButtonText}>🧪 Fill Test Card</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.form}>
+            <Text style={styles.label}>Card Number *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="1234 5678 9012 3456"
+              value={paymentInfo.cardNumber}
+              onChangeText={(text) => setPaymentInfo(prev => ({ ...prev, cardNumber: text }))}
+              keyboardType="numeric"
+            />
+
+            <Text style={styles.label}>Cardholder Name *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="John Doe"
+              value={paymentInfo.cardHolder}
+              onChangeText={(text) => setPaymentInfo(prev => ({ ...prev, cardHolder: text }))}
+            />
+
+            <View style={styles.row}>
+              <View style={styles.halfWidth}>
+                <Text style={styles.label}>Expiry Date *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="MM/YY"
+                  value={paymentInfo.expiryDate}
+                  onChangeText={(text) => setPaymentInfo(prev => ({ ...prev, expiryDate: text }))}
+                />
+              </View>
+              <View style={styles.halfWidth}>
+                <Text style={styles.label}>CVV *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="123"
+                  value={paymentInfo.cvv}
+                  onChangeText={(text) => setPaymentInfo(prev => ({ ...prev, cvv: text }))}
+                  keyboardType="numeric"
+                  secureTextEntry
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Important Notes */}
         <View style={styles.section}>
           <View style={styles.infoBox}>
@@ -287,10 +434,11 @@ const FlightPaymentScreen = ({ route, navigation }) => {
         </View>
 
         <View style={styles.bottomSpace} />
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Book Button */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>Total Amount</Text>
           <Text style={styles.totalAmount}>

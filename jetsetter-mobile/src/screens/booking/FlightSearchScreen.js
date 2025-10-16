@@ -8,9 +8,11 @@ import {
   ImageBackground,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import airportsData from '../../data/airports.json';
 import flightService from '../../services/flightService';
 import styles from './styles/FlightSearchScreen.styles';
@@ -28,6 +30,12 @@ const FlightSearchScreen = ({ navigation }) => {
   const [fromSuggestions, setFromSuggestions] = useState([]);
   const [toSuggestions, setToSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Date picker states
+  const [showDepartPicker, setShowDepartPicker] = useState(false);
+  const [showReturnPicker, setShowReturnPicker] = useState(false);
+  const [departureDate, setDepartureDate] = useState(new Date());
+  const [returnDateObj, setReturnDateObj] = useState(new Date(Date.now() + 86400000));
 
   const handleFromChange = (text) => {
     setFromCity(text);
@@ -69,6 +77,29 @@ const FlightSearchScreen = ({ navigation }) => {
   const selectToAirport = (airport) => {
     setToCity(`${airport.city} (${airport.code})`);
     setShowToSuggestions(false);
+  };
+
+  // Handle date changes
+  const handleDepartDateChange = (event, selectedDate) => {
+    setShowDepartPicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDepartureDate(selectedDate);
+      setDepartDate(selectedDate.toISOString().split('T')[0]);
+      // Ensure return date is after departure
+      if (selectedDate >= returnDateObj) {
+        const newReturn = new Date(selectedDate.getTime() + 86400000);
+        setReturnDateObj(newReturn);
+        setReturnDate(newReturn.toISOString().split('T')[0]);
+      }
+    }
+  };
+
+  const handleReturnDateChange = (event, selectedDate) => {
+    setShowReturnPicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setReturnDateObj(selectedDate);
+      setReturnDate(selectedDate.toISOString().split('T')[0]);
+    }
   };
 
   const handleSearch = async () => {
@@ -252,32 +283,52 @@ const FlightSearchScreen = ({ navigation }) => {
         <View style={styles.dateRow}>
           <View style={[styles.formGroup, { flex: 1, marginRight: 8 }]}>
             <Text style={styles.label}>Departure</Text>
-            <View style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.inputContainer}
+              onPress={() => setShowDepartPicker(true)}
+            >
               <Ionicons name="calendar" size={20} color="#0066b2" style={styles.icon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Select date"
-                value={departDate}
-                onChangeText={setDepartDate}
-              />
-            </View>
+              <Text style={[styles.input, !departDate && styles.placeholderText]}>
+                {departDate || 'Select date'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {tripType === 'round-trip' && (
             <View style={[styles.formGroup, { flex: 1, marginLeft: 8 }]}>
               <Text style={styles.label}>Return</Text>
-              <View style={styles.inputContainer}>
+              <TouchableOpacity
+                style={styles.inputContainer}
+                onPress={() => setShowReturnPicker(true)}
+              >
                 <Ionicons name="calendar" size={20} color="#0066b2" style={styles.icon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Select date"
-                  value={returnDate}
-                  onChangeText={setReturnDate}
-                />
-              </View>
+                <Text style={[styles.input, !returnDate && styles.placeholderText]}>
+                  {returnDate || 'Select date'}
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
+
+        {/* Date Pickers */}
+        {showDepartPicker && (
+          <DateTimePicker
+            value={departureDate}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleDepartDateChange}
+            minimumDate={new Date()}
+          />
+        )}
+        {showReturnPicker && tripType === 'round-trip' && (
+          <DateTimePicker
+            value={returnDateObj}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleReturnDateChange}
+            minimumDate={departureDate}
+          />
+        )}
 
         {/* Travelers and Class */}
         <View style={styles.dateRow}>

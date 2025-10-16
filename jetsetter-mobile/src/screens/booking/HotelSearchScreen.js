@@ -9,9 +9,11 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import hotelsData from '../../data/hotels.json';
 import hotelService from '../../services/hotelService';
 import styles from './styles/HotelSearchScreen.styles';
@@ -26,6 +28,12 @@ const HotelSearchScreen = ({ navigation }) => {
   const [selectedCityCode, setSelectedCityCode] = useState('');
   const [loading, setLoading] = useState(false);
   const destinationRef = useRef(null);
+
+  // Date picker states
+  const [showCheckInPicker, setShowCheckInPicker] = useState(false);
+  const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
+  const [checkInDate, setCheckInDate] = useState(new Date());
+  const [checkOutDate, setCheckOutDate] = useState(new Date(Date.now() + 86400000)); // Tomorrow
 
   // Handle destination input change
   const handleDestinationChange = (text) => {
@@ -50,6 +58,29 @@ const HotelSearchScreen = ({ navigation }) => {
     setSearchDestination(destination.name);
     setSelectedCityCode(destination.code);
     setShowDestinationSuggestions(false);
+  };
+
+  // Handle date changes
+  const handleCheckInChange = (event, selectedDate) => {
+    setShowCheckInPicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setCheckInDate(selectedDate);
+      setSearchCheckIn(selectedDate.toISOString().split('T')[0]);
+      // Ensure checkout is after checkin
+      if (selectedDate >= checkOutDate) {
+        const newCheckOut = new Date(selectedDate.getTime() + 86400000);
+        setCheckOutDate(newCheckOut);
+        setSearchCheckOut(newCheckOut.toISOString().split('T')[0]);
+      }
+    }
+  };
+
+  const handleCheckOutChange = (event, selectedDate) => {
+    setShowCheckOutPicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setCheckOutDate(selectedDate);
+      setSearchCheckOut(selectedDate.toISOString().split('T')[0]);
+    }
   };
 
   // Handle search submission
@@ -82,6 +113,16 @@ const HotelSearchScreen = ({ navigation }) => {
       setLoading(false);
 
       if (result.success && result.hotels.length > 0) {
+        console.log('🏨 Hotel search successful, navigating to results with:', {
+          hotels: result.hotels,
+          searchParams: {
+            destination: searchDestination,
+            cityCode: selectedCityCode,
+            checkInDate: searchCheckIn,
+            checkOutDate: searchCheckOut,
+            adults: searchGuests,
+          },
+        });
         navigation.navigate('HotelResults', {
           hotels: result.hotels,
           searchParams: {
@@ -164,30 +205,97 @@ const HotelSearchScreen = ({ navigation }) => {
         <View style={styles.dateRow}>
           <View style={[styles.formGroup, { flex: 1, marginRight: 8 }]}>
             <Text style={styles.label}>Check-in</Text>
-            <View style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.inputContainer}
+              onPress={() => setShowCheckInPicker(true)}
+            >
               <Ionicons name="calendar" size={20} color="#0066b2" style={styles.icon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Select date"
-                value={searchCheckIn}
-                onChangeText={setSearchCheckIn}
-              />
-            </View>
+              <Text style={[styles.input, !searchCheckIn && styles.placeholderText]}>
+                {searchCheckIn || 'Select date'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={[styles.formGroup, { flex: 1, marginLeft: 8 }]}>
             <Text style={styles.label}>Check-out</Text>
-            <View style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.inputContainer}
+              onPress={() => setShowCheckOutPicker(true)}
+            >
               <Ionicons name="calendar" size={20} color="#0066b2" style={styles.icon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Select date"
-                value={searchCheckOut}
-                onChangeText={setSearchCheckOut}
-              />
-            </View>
+              <Text style={[styles.input, !searchCheckOut && styles.placeholderText]}>
+                {searchCheckOut || 'Select date'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* Date Pickers */}
+        {showCheckInPicker && Platform.OS !== 'web' && (
+          <DateTimePicker
+            value={checkInDate}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleCheckInChange}
+            minimumDate={new Date()}
+          />
+        )}
+        {showCheckOutPicker && Platform.OS !== 'web' && (
+          <DateTimePicker
+            value={checkOutDate}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleCheckOutChange}
+            minimumDate={checkInDate}
+          />
+        )}
+        
+        {/* Web Date Picker Fallbacks */}
+        {showCheckInPicker && Platform.OS === 'web' && (
+          <View style={styles.webDatePicker}>
+            <Text style={styles.webDatePickerTitle}>Select Check-in Date</Text>
+            <input
+              type="date"
+              value={checkInDate.toISOString().split('T')[0]}
+              min={new Date().toISOString().split('T')[0]}
+              onChange={(e) => {
+                const newDate = new Date(e.target.value);
+                setCheckInDate(newDate);
+                setShowCheckInPicker(false);
+              }}
+              style={styles.webDateInput}
+            />
+            <TouchableOpacity
+              style={styles.webDatePickerButton}
+              onPress={() => setShowCheckInPicker(false)}
+            >
+              <Text style={styles.webDatePickerButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        
+        {showCheckOutPicker && Platform.OS === 'web' && (
+          <View style={styles.webDatePicker}>
+            <Text style={styles.webDatePickerTitle}>Select Check-out Date</Text>
+            <input
+              type="date"
+              value={checkOutDate.toISOString().split('T')[0]}
+              min={checkInDate.toISOString().split('T')[0]}
+              onChange={(e) => {
+                const newDate = new Date(e.target.value);
+                setCheckOutDate(newDate);
+                setShowCheckOutPicker(false);
+              }}
+              style={styles.webDateInput}
+            />
+            <TouchableOpacity
+              style={styles.webDatePickerButton}
+              onPress={() => setShowCheckOutPicker(false)}
+            >
+              <Text style={styles.webDatePickerButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Guests */}
         <View style={styles.formGroup}>

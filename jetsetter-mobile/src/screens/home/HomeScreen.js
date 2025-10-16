@@ -9,26 +9,143 @@ import {
   ImageBackground,
   Modal,
   Alert,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import destinationsData from '../../data/destinations.json';
 import cruiseLinesData from '../../data/cruiselines.json';
 import styles from './styles/HomeScreen.styles';
 
+// Hero Section with Search - MOVED OUTSIDE to prevent re-creation
+const HeroSection = ({
+  searchDestination,
+  handleDestinationChange,
+  searchDate,
+  setSearchDate,
+  handleSearch,
+  searchLoading,
+  showSuggestions,
+  filteredSuggestions,
+  handleSuggestionClick,
+  showDatePicker,
+  setShowDatePicker,
+  dateObject,
+  handleDateChange
+}) => (
+  <ImageBackground
+    source={{ uri: 'https://images.unsplash.com/photo-1508515803898-d0ebb8c48291?w=1200' }}
+    style={styles.hero}
+    imageStyle={styles.heroImage}
+  >
+    <LinearGradient
+      colors={['rgba(0, 102, 178, 0.85)', 'rgba(30, 136, 229, 0.85)']}
+      style={styles.heroOverlay}
+    >
+      <View style={styles.heroContent}>
+        <Text style={styles.heroTitle}>Discover Your Perfect</Text>
+        <Text style={styles.heroTitleHighlight}>Cruise Adventure</Text>
+        <Text style={styles.heroSubtitle}>
+          Explore breathtaking destinations with luxury cruise experiences
+        </Text>
+
+        <View style={styles.searchCard}>
+          <View style={styles.searchInputGroup}>
+            <Ionicons name="location" size={20} color="#0066b2" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Where do you want to go?"
+              value={searchDestination}
+              onChangeText={handleDestinationChange}
+            />
+          </View>
+
+          {/* Autocomplete Suggestions */}
+          {showSuggestions && filteredSuggestions.length > 0 && (
+            <View style={styles.suggestionsDropdown}>
+              {filteredSuggestions.map((suggestion, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.suggestionItem}
+                  onPress={() => handleSuggestionClick(suggestion)}
+                >
+                  <Ionicons name="location-outline" size={18} color="#0066b2" />
+                  <View style={{ marginLeft: 10 }}>
+                    <Text style={styles.suggestionName}>{suggestion.name}</Text>
+                    <Text style={styles.suggestionCountry}>{suggestion.country}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={styles.searchInputGroup}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Ionicons name="calendar" size={20} color="#0066b2" style={styles.searchIcon} />
+            <Text style={[styles.searchInput, !searchDate && { color: '#94A3B8' }]}>
+              {searchDate || 'Select date'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Date Picker */}
+          {showDatePicker && (
+            <DateTimePicker
+              value={dateObject}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+            />
+          )}
+
+          <TouchableOpacity
+            style={[styles.searchButton, searchLoading && styles.searchButtonDisabled]}
+            onPress={handleSearch}
+            disabled={searchLoading}
+          >
+            {searchLoading ? (
+              <>
+                <ActivityIndicator size="small" color="#fff" />
+                <Text style={styles.searchButtonText}>Searching...</Text>
+              </>
+            ) : (
+              <>
+                <Ionicons name="search" size={20} color="#fff" />
+                <Text style={styles.searchButtonText}>Search Cruises</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    </LinearGradient>
+  </ImageBackground>
+);
+
 const HomeScreen = ({ navigation }) => {
   const [searchDestination, setSearchDestination] = useState('');
   const [searchDate, setSearchDate] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [selectedCruiseLine, setSelectedCruiseLine] = useState('');
   const [showTestimonials, setShowTestimonials] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [subscriptionEmail, setSubscriptionEmail] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
     message: '',
   });
+
+  // Date picker states
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateObject, setDateObject] = useState(new Date());
+
 
   const testimonials = [
     {
@@ -51,8 +168,68 @@ const HomeScreen = ({ navigation }) => {
     },
   ];
 
-  const handleSearch = () => {
-    Alert.alert('Search', `Searching for cruises to ${searchDestination}`);
+  const handleDestinationChange = (text) => {
+    setSearchDestination(text);
+
+    if (text.trim().length >= 2) {
+      const suggestions = destinationsData.destinations.filter(dest =>
+        dest.name.toLowerCase().includes(text.toLowerCase()) ||
+        dest.country.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredSuggestions(suggestions.slice(0, 5));
+      setShowSuggestions(suggestions.length > 0);
+    } else {
+      setShowSuggestions(false);
+      setFilteredSuggestions([]);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchDestination(suggestion.name);
+    setShowSuggestions(false);
+    setFilteredSuggestions([]);
+  };
+
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDateObject(selectedDate);
+      setSearchDate(selectedDate.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (searchDestination.trim()) {
+      setSearchLoading(true);
+      setShowSuggestions(false);
+      try {
+        // Import cruise service
+        const cruiseService = require('../../services/cruiseService').default;
+
+        // Search for cruises with the destination
+        const result = await cruiseService.searchCruises({
+          destination: searchDestination.trim(),
+          passengers: 2
+        });
+
+        if (result.success && result.cruises.length > 0) {
+          // Navigate directly to results with search data
+          navigation.navigate('CruiseResults', {
+            cruises: result.cruises,
+            searchParams: { destination: searchDestination.trim(), passengers: 2 }
+          });
+        } else {
+          Alert.alert('No Results', 'No cruises found for that destination. Please try a different search.');
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        Alert.alert('Error', 'Unable to search cruises. Please try again.');
+      } finally {
+        setSearchLoading(false);
+      }
+    } else {
+      Alert.alert('Search', 'Please enter a destination to search for cruises');
+    }
   };
 
   const handleSubscribe = () => {
@@ -69,55 +246,6 @@ const HomeScreen = ({ navigation }) => {
       setContactForm({ name: '', email: '', message: '' });
     }
   };
-
-  // Hero Section with Search
-  const HeroSection = () => (
-    <ImageBackground
-      source={{ uri: 'https://images.unsplash.com/photo-1508515803898-d0ebb8c48291?w=1200' }}
-      style={styles.hero}
-      imageStyle={styles.heroImage}
-    >
-      <LinearGradient
-        colors={['rgba(0, 102, 178, 0.85)', 'rgba(30, 136, 229, 0.85)']}
-        style={styles.heroOverlay}
-      >
-        <View style={styles.heroContent}>
-          <Text style={styles.heroTitle}>Discover Your Perfect</Text>
-          <Text style={styles.heroTitleHighlight}>Cruise Adventure</Text>
-          <Text style={styles.heroSubtitle}>
-            Explore breathtaking destinations with luxury cruise experiences
-          </Text>
-
-          <View style={styles.searchCard}>
-            <View style={styles.searchInputGroup}>
-              <Ionicons name="location" size={20} color="#0066b2" style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Where do you want to go?"
-                value={searchDestination}
-                onChangeText={setSearchDestination}
-              />
-            </View>
-
-            <View style={styles.searchInputGroup}>
-              <Ionicons name="calendar" size={20} color="#0066b2" style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Select date"
-                value={searchDate}
-                onChangeText={setSearchDate}
-              />
-            </View>
-
-            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-              <Ionicons name="search" size={20} color="#fff" />
-              <Text style={styles.searchButtonText}>Search Cruises</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </LinearGradient>
-    </ImageBackground>
-  );
 
   // Destination Section
   const DestinationSection = () => (
@@ -138,7 +266,24 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.destinationInfo}>
               <Text style={styles.destinationName}>{dest.name}</Text>
               <Text style={styles.destinationPrice}>Starts from ${dest.price}/p.p</Text>
-              <TouchableOpacity style={styles.bookButton}>
+              <TouchableOpacity
+                style={styles.bookButton}
+                onPress={async () => {
+                  const cruiseService = require('../../services/cruiseService').default;
+                  const result = await cruiseService.searchCruises({
+                    destination: dest.name,
+                    passengers: 2
+                  });
+                  if (result.success && result.cruises.length > 0) {
+                    navigation.navigate('CruiseResults', {
+                      cruises: result.cruises,
+                      searchParams: { destination: dest.name, passengers: 2 }
+                    });
+                  } else {
+                    Alert.alert('No Cruises', `No cruises found for ${dest.name} at the moment.`);
+                  }
+                }}
+              >
                 <Text style={styles.bookButtonText}>BOOK NOW</Text>
               </TouchableOpacity>
             </View>
@@ -172,7 +317,24 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.cruiseInfo}>
               <Text style={styles.cruiseName}>{cruise.name}</Text>
               <Text style={styles.cruisePrice}>Starts from {cruise.price}/p.p</Text>
-              <TouchableOpacity style={styles.bookButton}>
+              <TouchableOpacity
+                style={styles.bookButton}
+                onPress={async () => {
+                  const cruiseService = require('../../services/cruiseService').default;
+                  const result = await cruiseService.searchCruises({
+                    cruiseLine: cruise.name,
+                    passengers: 2
+                  });
+                  if (result.success && result.cruises.length > 0) {
+                    navigation.navigate('CruiseResults', {
+                      cruises: result.cruises,
+                      searchParams: { cruiseLine: cruise.name, passengers: 2 }
+                    });
+                  } else {
+                    Alert.alert('No Cruises', `No cruises found for ${cruise.name} at the moment.`);
+                  }
+                }}
+              >
                 <Text style={styles.bookButtonText}>BOOK NOW</Text>
               </TouchableOpacity>
             </View>
@@ -271,7 +433,10 @@ const HomeScreen = ({ navigation }) => {
               </View>
             ))}
           </View>
-          <TouchableOpacity style={styles.promoButton}>
+          <TouchableOpacity 
+            style={styles.promoButton}
+            onPress={() => navigation.navigate('CruiseSearch')}
+          >
             <Text style={styles.promoButtonText}>View Special Offers</Text>
           </TouchableOpacity>
         </View>
@@ -407,13 +572,34 @@ const HomeScreen = ({ navigation }) => {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 48, paddingBottom: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
-        <Text style={{ fontSize: 24, fontWeight: '800', color: '#1E293B' }}>Jetsetterss</Text>
+        <Text style={{ fontSize: 24, fontWeight: '800', color: '#1E293B' }}>Jetsetters</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
           <Ionicons name="person-circle" size={32} color="#0EA5E9" />
         </TouchableOpacity>
       </View>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <HeroSection />
+      <ScrollView 
+        style={styles.container} 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
+        removeClippedSubviews={false}
+        keyboardDismissMode="none"
+      >
+        <HeroSection
+          searchDestination={searchDestination}
+          handleDestinationChange={handleDestinationChange}
+          searchDate={searchDate}
+          setSearchDate={setSearchDate}
+          handleSearch={handleSearch}
+          searchLoading={searchLoading}
+          showSuggestions={showSuggestions}
+          filteredSuggestions={filteredSuggestions}
+          handleSuggestionClick={handleSuggestionClick}
+          showDatePicker={showDatePicker}
+          setShowDatePicker={setShowDatePicker}
+          dateObject={dateObject}
+          handleDateChange={handleDateChange}
+        />
       <DestinationSection />
       <CruiseLineSection />
       <TrustIndicators />

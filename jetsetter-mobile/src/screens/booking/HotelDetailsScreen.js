@@ -6,6 +6,9 @@ import styles from './styles/HotelDetailsScreen.styles';
 
 const HotelDetailsScreen = ({ route, navigation }) => {
   const { hotel, searchParams } = route.params;
+  
+  console.log('🏨 HotelDetailsScreen loaded with hotel:', hotel?.name);
+  console.log('🏨 Search params:', searchParams);
   const [selectedOffer, setSelectedOffer] = useState(hotel.offers[0]);
   const nights = hotelService.calculateNights(searchParams.checkInDate, searchParams.checkOutDate);
 

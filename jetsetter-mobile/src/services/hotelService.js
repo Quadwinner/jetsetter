@@ -263,22 +263,22 @@ class HotelService {
     return [
       {
         hotelId: 'HTL001',
-        name: 'Grand Plaza Hotel',
-        rating: 4.5,
-        address: '123 Main Street, ' + searchParams.cityCode,
-        amenities: ['wifi', 'pool', 'gym', 'restaurant', 'spa'],
+        name: 'City Center Suites',
+        rating: 4.6,
+        address: '321 Downtown Street, ' + searchParams.cityCode,
+        amenities: ['wifi', 'gym', 'breakfast', 'concierge'],
         offers: [
           {
             offerId: 'OFFER001',
-            roomType: 'Deluxe Room',
-            price: 199.99,
+            roomType: 'Studio Suite',
+            price: 129.99,
             currency: 'USD',
             cancellationPolicy: 'Free cancellation until 24h before check-in',
           },
           {
             offerId: 'OFFER002',
-            roomType: 'Executive Suite',
-            price: 299.99,
+            roomType: 'One Bedroom Suite',
+            price: 189.99,
             currency: 'USD',
             cancellationPolicy: 'Free cancellation until 48h before check-in',
           },

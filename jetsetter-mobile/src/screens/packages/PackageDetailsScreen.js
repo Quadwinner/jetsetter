@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import packageService from '../../services/packageService';
 
 const PackageDetailsScreen = ({ route, navigation }) => {
   const { packageId } = route.params;
+  const insets = useSafeAreaInsets();
   const [pkg, setPkg] = useState(null);
 
   useEffect(() => {
@@ -58,7 +60,13 @@ const PackageDetailsScreen = ({ route, navigation }) => {
           ))}
         </View>
       </ScrollView>
-      <View style={{ backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', padding: 16 }}>
+      <View style={{
+        backgroundColor: '#FFF',
+        borderTopWidth: 1,
+        borderTopColor: '#E2E8F0',
+        padding: 16,
+        paddingBottom: Math.max(insets.bottom, 16),
+      }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View>
             <Text style={{ fontSize: 12, color: '#64748B' }}>Total Price</Text>

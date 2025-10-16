@@ -1,4 +1,4 @@
-# 📱 How to Build and Install Jetsetterss APK
+# 📱 How to Build and Install Jetsetters APK
 
 ## 🚀 **Method 1: EAS Build (Recommended)**
 
@@ -90,7 +90,7 @@ cd android
    - Follow installation prompts
 
 4. **Launch App:**
-   - Find "Jetsetterss" in app drawer
+   - Find "Jetsetters" in app drawer
    - Tap to launch
 
 ---

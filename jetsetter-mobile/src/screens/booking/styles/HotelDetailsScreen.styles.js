@@ -25,7 +25,7 @@ export default StyleSheet.create({
   roomType: { fontSize: 16, fontWeight: '700', color: '#1E293B' },
   cancellationPolicy: { fontSize: 13, color: '#64748B', marginBottom: 8 },
   roomPrice: { fontSize: 18, fontWeight: '700', color: '#0EA5E9' },
-  footer: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 5 },
+  footer: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', padding: 16, paddingBottom: 32, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 5 },
   totalContainer: { marginBottom: 16 },
   totalLabel: { fontSize: 14, fontWeight: '600', color: '#475569', marginBottom: 4 },
   totalAmount: { fontSize: 24, fontWeight: '700', color: '#0EA5E9' },

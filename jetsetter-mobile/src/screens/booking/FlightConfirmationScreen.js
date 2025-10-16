@@ -1,22 +1,53 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import flightService from '../../services/flightService';
 import styles from './styles/FlightConfirmationScreen.styles';
 
 const FlightConfirmationScreen = ({ route, navigation }) => {
-  const { pnr, orderId, orderData, travelers, flight } = route.params;
+  const { pnr, orderId, orderData, travelers, flight, payment, orderReference } = route.params;
 
   const price = flight.price?.total || '0';
   const currency = flight.price?.currency || 'USD';
   const itinerary = flight.itineraries?.[0];
   const firstSegment = itinerary?.segments?.[0];
   const lastSegment = itinerary?.segments?.[itinerary.segments.length - 1];
+
+  // Save booking to AsyncStorage when confirmation screen loads
+  useEffect(() => {
+    const saveBooking = async () => {
+      try {
+        const bookingToSave = {
+          orderId: orderId || orderReference || `FLIGHT-${Date.now()}`,
+          bookingReference: pnr || orderReference || `FLIGHT-${Date.now()}`,
+          type: 'flight',
+          flight,
+          travelers,
+          amount: parseFloat(price),
+          totalAmount: parseFloat(price),
+          payment: payment || null,
+          status: 'CONFIRMED',
+          bookingDate: new Date().toISOString(),
+          orderCreatedAt: new Date().toISOString(),
+          transactionId: payment?.transactionId || null,
+          pnr,
+        };
+
+        await AsyncStorage.setItem('completedFlightBooking', JSON.stringify(bookingToSave));
+        console.log('✅ Flight booking saved to AsyncStorage');
+      } catch (error) {
+        console.error('❌ Error saving flight booking:', error);
+      }
+    };
+
+    saveBooking();
+  }, [orderId, orderReference, pnr, flight, travelers, price, payment]);
 
   const handleDone = () => {
     // Navigate to home or trips screen

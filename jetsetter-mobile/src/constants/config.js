@@ -32,7 +32,7 @@ export const ARC_PAY_CONFIG = {
 
 // App Configuration
 export const APP_CONFIG = {
-  NAME: 'Jetsetterss',
+  NAME: 'Jetsetters',
   VERSION: '1.0.0',
   ENVIRONMENT: process.env.APP_ENV || 'development',
 };

@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import hotelService from '../../services/hotelService';
 import styles from './styles/HotelResultsScreen.styles';
 
 const HotelResultsScreen = ({ route, navigation }) => {
   const { hotels, searchParams } = route.params;
+  
+  console.log('🏨 HotelResultsScreen loaded with:', {
+    hotelsCount: hotels?.length,
+    hotels: hotels?.map(h => ({ name: h.name, id: h.hotelId })),
+    searchParams
+  });
   const [sortBy, setSortBy] = useState('price');
 
   const sortedHotels = [...hotels].sort((a, b) => {
@@ -72,10 +78,9 @@ const HotelResultsScreen = ({ route, navigation }) => {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {sortedHotels.map((hotel, index) => (
-          <TouchableOpacity
+          <View
             key={index}
             style={styles.hotelCard}
-            onPress={() => navigation.navigate('HotelDetails', { hotel, searchParams })}
           >
             <Image source={{ uri: hotel.images[0] }} style={styles.hotelImage} />
             <View style={styles.ratingBadge}>
@@ -101,12 +106,25 @@ const HotelResultsScreen = ({ route, navigation }) => {
                   </Text>
                   <Text style={styles.perNightText}>per night</Text>
                 </View>
-                <TouchableOpacity style={styles.viewButton}>
+                <TouchableOpacity 
+                  style={styles.viewButton}
+                  onPress={() => {
+                    try {
+                      console.log('🔍 View button pressed for hotel:', hotel.name);
+                      console.log('🔍 Navigation params:', { hotel, searchParams });
+                      console.log('🔍 Navigation object:', navigation);
+                      navigation.navigate('HotelDetails', { hotel, searchParams });
+                    } catch (error) {
+                      console.error('❌ Navigation error:', error);
+                      Alert.alert('Navigation Error', 'Unable to navigate to hotel details. Please try again.');
+                    }
+                  }}
+                >
                   <Text style={styles.viewButtonText}>View</Text>
                 </TouchableOpacity>
               </View>
             </View>
-          </TouchableOpacity>
+          </View>
         ))}
         <View style={styles.bottomPadding} />
       </ScrollView>

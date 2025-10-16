@@ -1,11 +1,44 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import hotelService from '../../services/hotelService';
 import styles from './styles/HotelConfirmationScreen.styles';
 
 const HotelConfirmationScreen = ({ route, navigation }) => {
-  const { booking, hotel, selectedOffer, searchParams, nights } = route.params;
+  const { booking, hotel, selectedOffer, searchParams, nights, payment, orderReference } = route.params;
+
+  // Save booking to AsyncStorage when confirmation screen loads
+  useEffect(() => {
+    const saveBooking = async () => {
+      try {
+        const bookingToSave = {
+          orderId: orderReference || booking.bookingReference || `HOTEL-${Date.now()}`,
+          bookingReference: booking.bookingReference || orderReference || `HOTEL-${Date.now()}`,
+          type: 'hotel',
+          hotel,
+          selectedOffer,
+          searchParams,
+          nights,
+          guestDetails: booking.guestDetails,
+          amount: booking.totalPrice,
+          totalAmount: booking.totalPrice,
+          payment: payment || null,
+          status: 'CONFIRMED',
+          bookingDate: new Date().toISOString(),
+          orderCreatedAt: new Date().toISOString(),
+          transactionId: payment?.transactionId || null,
+        };
+
+        await AsyncStorage.setItem('completedHotelBooking', JSON.stringify(bookingToSave));
+        console.log('✅ Hotel booking saved to AsyncStorage');
+      } catch (error) {
+        console.error('❌ Error saving hotel booking:', error);
+      }
+    };
+
+    saveBooking();
+  }, [orderReference, booking, hotel, selectedOffer, searchParams, nights, payment]);
 
   const handleDone = () => {
     navigation.reset({

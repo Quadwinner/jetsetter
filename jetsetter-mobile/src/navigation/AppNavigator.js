@@ -19,6 +19,11 @@ import HotelResultsScreen from '../screens/booking/HotelResultsScreen';
 import HotelDetailsScreen from '../screens/booking/HotelDetailsScreen';
 import HotelPaymentScreen from '../screens/booking/HotelPaymentScreen';
 import HotelConfirmationScreen from '../screens/booking/HotelConfirmationScreen';
+import CruiseSearchScreen from '../screens/booking/CruiseSearchScreen';
+import CruiseResultsScreen from '../screens/booking/CruiseResultsScreen';
+import CruiseDetailsScreen from '../screens/booking/CruiseDetailsScreen';
+import CruiseBookingScreen from '../screens/booking/CruiseBookingScreen';
+import CruiseConfirmationScreen from '../screens/booking/CruiseConfirmationScreen';
 import PackageListScreen from '../screens/packages/PackageListScreen';
 import PackageDetailsScreen from '../screens/packages/PackageDetailsScreen';
 import PackageBookingScreen from '../screens/packages/PackageBookingScreen';
@@ -105,6 +110,11 @@ const MainStack = () => (
     <Stack.Screen name="HotelDetails" component={HotelDetailsScreen} />
     <Stack.Screen name="HotelPayment" component={HotelPaymentScreen} />
     <Stack.Screen name="HotelConfirmation" component={HotelConfirmationScreen} />
+    <Stack.Screen name="CruiseSearch" component={CruiseSearchScreen} />
+    <Stack.Screen name="CruiseResults" component={CruiseResultsScreen} />
+    <Stack.Screen name="CruiseDetails" component={CruiseDetailsScreen} />
+    <Stack.Screen name="CruiseBooking" component={CruiseBookingScreen} />
+    <Stack.Screen name="CruiseConfirmation" component={CruiseConfirmationScreen} />
     <Stack.Screen name="PackageDetails" component={PackageDetailsScreen} />
     <Stack.Screen name="PackageBooking" component={PackageBookingScreen} />
     <Stack.Screen name="PackageConfirmation" component={PackageConfirmationScreen} />

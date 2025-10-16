@@ -106,6 +106,44 @@ export default StyleSheet.create({
     fontWeight: '700',
     marginLeft: 8,
   },
+  searchButtonDisabled: {
+    backgroundColor: '#94A3B8',
+    shadowOpacity: 0.1,
+  },
+
+  // Autocomplete Suggestions
+  suggestionsDropdown: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginTop: -10,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    maxHeight: 220,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  suggestionName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1E293B',
+  },
+  suggestionCountry: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
+  },
 
   // Section Styles
   section: {

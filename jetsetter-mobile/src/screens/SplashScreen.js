@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { COLORS } from '../constants/config';
 
-const SplashScreen: React.FC = () => {
+const SplashScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🚀 Jetsetterss</Text>
+      <Text style={styles.title}>🚀 Jetsetters</Text>
       <Text style={styles.subtitle}>Your Luxury Travel Companion</Text>
       <ActivityIndicator size="large" color={COLORS.PRIMARY} style={styles.loader} />
     </View>
